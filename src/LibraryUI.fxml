@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<TabPane xmlns:fx="http://javafx.com/fxml" fx:controller="gui.LibraryController">
+    <tabs>
+        <!-- Onglet Livres -->
+        <Tab text="Livres">
+            <VBox spacing="10" padding="10">
+                <HBox spacing="5">
+                    <TextField fx:id="searchBookField" promptText="Recherche (titre, auteur, catégorie)"/>
+                    <Button text="Rechercher" onAction="#onSearchBooks"/>
+                </HBox>
+                <TableView fx:id="tableBooks">
+                    <columns>
+                        <TableColumn text="ID" fx:id="colBookId" prefWidth="50"/>
+                        <TableColumn text="Titre" fx:id="colBookTitle" prefWidth="200"/>
+                        <TableColumn text="Auteur" fx:id="colBookAuthor" prefWidth="150"/>
+                        <TableColumn text="Catégorie" fx:id="colBookCat" prefWidth="100"/>
+                    </columns>
+                </TableView>
+                <HBox spacing="10">
+                    <Button text="Afficher Détails" onAction="#onShowBookDetails"/>
+                    <Button text="Supprimer Livre" onAction="#onDeleteBook"/>
+                </HBox>
+            </VBox>
+        </Tab>
+        <!-- Onglet Adhérents -->
+        <Tab text="Adhérents">
+            <VBox spacing="10" padding="10">
+                <HBox spacing="5">
+                    <TextField fx:id="searchMemberField" promptText="Recherche (ID ou nom)"/>
+                    <Button text="Rechercher" onAction="#onSearchMembers"/>
+                </HBox>
+                <TableView fx:id="tableMembers">
+                    <columns>
+                        <TableColumn text="ID" fx:id="colMemberId" prefWidth="50"/>
+                        <TableColumn text="Nom" fx:id="colMemberName" prefWidth="200"/>
+                    </columns>
+                </TableView>
+                <HBox spacing="10">
+                    <Button text="Afficher Détails" onAction="#onShowMemberDetails"/>
+                    <Button text="Supprimer Adhérent" onAction="#onDeleteMember"/>
+                </HBox>
+            </VBox>
+        </Tab>
+    </tabs>
+</TabPane>
