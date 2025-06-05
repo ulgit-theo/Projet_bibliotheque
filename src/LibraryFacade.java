@@ -5,7 +5,7 @@ import java.util.stream.Collectors;
 
 public class LibraryFacade {
     private Bibliotheque bib = Bibliotheque.getInstance();
-    private FineStrategy fineStrategy = new AmendeFixe(1.0); // 1 unité par jour
+    private FineStrategy fineStrategy = new AmendeFixe(5); // 1 unité par jour
 
     // Initialisation de données de démonstration
     public void loadSampleData() {
@@ -25,7 +25,7 @@ public class LibraryFacade {
         String titre = sc.nextLine();
         System.out.print("Auteur: ");
         String auteur = sc.nextLine();
-        System.out.print("Catégorie (GENERALE/REFERENCE): ");
+        System.out.print("Catégorie (GENERALE/REFERENCE/AVENTURE/HISTOIRE/ENFANT): ");
         Categorie cat = Categorie.valueOf(sc.nextLine().toUpperCase());
         Livre l = BookFactory.creerLivre(titre, auteur, cat);
         bib.getLivres().add(l);
@@ -91,6 +91,36 @@ public class LibraryFacade {
             System.out.println("Impossible de retourner: " + e.getMessage());
         }
     }
+    public void afficherListeLivres() {
+        List<Livre> livres = Bibliotheque.getInstance().getLivres();
+        if (livres.isEmpty()) {
+            System.out.println("Aucun livre enregistré.");
+            return;
+        }
+
+        System.out.println("\n--- Liste des Livres ---");
+        for (Livre livre : livres) {
+            String titre = livre.getTitre();
+            String auteur = livre.getAuteur();
+            String categorie = livre.getCategorie().toString();
+            String etat = livre.getState().getClass().getSimpleName();
+            System.out.printf("Titre: %-25s Auteur: %-15s Catégorie: %-10s État: %s\n",
+                    titre, auteur, categorie, etat);
+        }
+    }
+
+    public void afficherListeAdherents() {
+        List<Adherent> adherents = Bibliotheque.getInstance().getAdherents();
+        if (adherents.isEmpty()) {
+            System.out.println("Aucun adhérent enregistré.");
+            return;
+        }
+
+        System.out.println("\n--- Liste des Adhérents ---");
+        for (Adherent a : adherents) {
+            System.out.printf("ID: %-3d Nom: %s\n", a.getId(), a.getNom());
+        }
+    }
 
     // Réserver un livre (console)
     public void reserverLivreConsole(Scanner sc) {
@@ -118,7 +148,7 @@ public class LibraryFacade {
             // On suppose trouver l'adhérent et calculer son amende
             if (l.getState() instanceof Emprunte) {
                 double amende = fineStrategy.calculerAmende(joursRetard);
-                System.out.println("Livre '" + l.getTitre() + "' : amende = " + amende);
+                System.out.println("Livre '" + l.getTitre() + "' : amende = " + amende+"£");
             }
         }
     }
@@ -165,3 +195,157 @@ public class LibraryFacade {
         return null;
     }
 }
+// Partie à ajouter dans LibraryFacade.java
+
+/*import javax.swing.*;
+import java.util.Arrays;
+import java.util.List;
+public class LibraryFacade {
+    private Bibliotheque bib = Bibliotheque.getInstance();
+    private FineStrategy fineStrategy = new AmendeFixe(1.0);
+
+    public void loadSampleData() {
+        bib.getAdherents().add(new Adherent("Alice"));
+        bib.getAdherents().add(new Adherent("Bob"));
+        bib.getLivres().add(BookFactory.creerLivre("1984", "Orwell", Categorie.GENERALE));
+        bib.getLivres().add(BookFactory.creerLivre("Dictionnaire", "Larousse", Categorie.REFERENCE));
+    }
+    public List<Livre> rechercherLivres(String motCle) {
+        return bib.getLivres().stream()
+                .filter(l -> l.getTitre().contains(motCle)
+                        || l.getAuteur().contains(motCle))
+                .collect(Collectors.toList());
+    }
+
+    public void ajouterLivre() {
+        String titre = JOptionPane.showInputDialog("Titre du livre :");
+        String auteur = JOptionPane.showInputDialog("Auteur :");
+        String[] categories = {"GENERALE", "REFERENCE"};
+        String catStr = (String) JOptionPane.showInputDialog(null, "Catégorie :",
+                "Choix de catégorie", JOptionPane.QUESTION_MESSAGE, null, categories, categories[0]);
+
+        if (titre != null && auteur != null && catStr != null) {
+            Categorie cat = Categorie.valueOf(catStr.toUpperCase());
+            Livre l = BookFactory.creerLivre(titre, auteur, cat);
+            bib.getLivres().add(l);
+            JOptionPane.showMessageDialog(null, "Livre ajouté avec succès !");
+        }
+    }
+
+    public void supprimerAdherent() {
+        String idStr = JOptionPane.showInputDialog("ID de l'adhérent à supprimer :");
+        try {
+            int id = Integer.parseInt(idStr);
+            Adherent toRemove = bib.getAdherents().stream()
+                    .filter(a -> a.getId() == id).findFirst().orElse(null);
+            if (toRemove != null) {
+                bib.getAdherents().remove(toRemove);
+                JOptionPane.showMessageDialog(null, "Adhérent supprimé.");
+            } else {
+                JOptionPane.showMessageDialog(null, "Adhérent non trouvé.");
+            }
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(null, "ID invalide.");
+        }
+    }
+
+    public void emprunterLivre() {
+        String titre = JOptionPane.showInputDialog("Titre du livre à emprunter :");
+        String idStr = JOptionPane.showInputDialog("ID de l'adhérent :");
+        try {
+            int id = Integer.parseInt(idStr);
+            Livre livre = bib.getLivres().stream()
+                    .filter(l -> l.getTitre().equalsIgnoreCase(titre)).findFirst().orElse(null);
+            Adherent adherent = bib.getAdherents().stream()
+                    .filter(a -> a.getId() == id).findFirst().orElse(null);
+            if (livre != null && adherent != null) {
+                livre.emprunter(adherent);
+                adherent.emprunterLivre(livre);
+                JOptionPane.showMessageDialog(null, "Livre emprunté avec succès.");
+            } else {
+                JOptionPane.showMessageDialog(null, "Livre ou adhérent introuvable.");
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, "Erreur : " + e.getMessage());
+        }
+    }
+
+    public void retournerLivre() {
+        String titre = JOptionPane.showInputDialog("Titre du livre à retourner :");
+        Livre livre = bib.getLivres().stream()
+                .filter(l -> l.getTitre().equalsIgnoreCase(titre)).findFirst().orElse(null);
+        if (livre != null) {
+            try {
+                livre.retourner();
+                JOptionPane.showMessageDialog(null, "Livre retourné.");
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(null, "Erreur : " + e.getMessage());
+            }
+        } else {
+            JOptionPane.showMessageDialog(null, "Livre non trouvé.");
+        }
+    }
+
+    public void reserverLivre() {
+        String titre = JOptionPane.showInputDialog("Titre du livre à réserver :");
+        String idStr = JOptionPane.showInputDialog("ID de l'adhérent :");
+        try {
+            int id = Integer.parseInt(idStr);
+            Livre livre = bib.getLivres().stream()
+                    .filter(l -> l.getTitre().equalsIgnoreCase(titre)).findFirst().orElse(null);
+            Adherent adherent = bib.getAdherents().stream()
+                    .filter(a -> a.getId() == id).findFirst().orElse(null);
+            if (livre != null && adherent != null) {
+                livre.ajouterObservateur(adherent);
+                JOptionPane.showMessageDialog(null, "Réservation enregistrée. Vous serez notifié.");
+            } else {
+                JOptionPane.showMessageDialog(null, "Livre ou adhérent introuvable.");
+            }
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(null, "ID invalide.");
+        }
+    }
+
+    public void calculerAmendes() {
+        String joursStr = JOptionPane.showInputDialog("Nombre de jours de retard :");
+        try {
+            int jours = Integer.parseInt(joursStr);
+            StringBuilder sb = new StringBuilder("--- Amendes ---\n");
+            for (Livre l : bib.getLivres()) {
+                if (l.getState() instanceof Emprunte) {
+                    double amende = fineStrategy.calculerAmende(jours);
+                    sb.append("Livre : ").append(l.getTitre()).append(" | Amende : ").append(amende).append("\n");
+                }
+            }
+            JOptionPane.showMessageDialog(null, sb.toString());
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(null, "Nombre de jours invalide.");
+        }
+    }
+
+    public void afficherListeLivres() {
+        StringBuilder sb = new StringBuilder("--- Liste des Livres ---\n");
+        for (Livre l : bib.getLivres()) {
+            sb.append("Titre : ").append(l.getTitre())
+                    .append(" | Auteur : ").append(l.getAuteur())
+                    .append(" | Catégorie : ").append(l.getCategorie())
+                    .append(" | État : ").append(l.getState().getClass().getSimpleName())
+                    .append("\n");
+        }
+        JOptionPane.showMessageDialog(null, sb.toString());
+    }
+
+    public void afficherListeAdherents() {
+        StringBuilder sb = new StringBuilder("--- Liste des Adhérents ---\n");
+        for (Adherent a : bib.getAdherents()) {
+            sb.append("ID : ").append(a.getId()).append(" | Nom : ").append(a.getNom()).append("\n");
+        }
+        JOptionPane.showMessageDialog(null, sb.toString());
+    }
+
+    public static LibraryFacade getInstance() {
+        return instance;
+    }
+
+    private static final LibraryFacade instance = new LibraryFacade();
+}*/

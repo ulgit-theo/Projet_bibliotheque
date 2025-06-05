@@ -1,0 +1,106 @@
+@startuml
+abstract class Livre {
+    - id: String
+    - titre: String
+    - auteur: String
+    - etat: EtatLivre
+    + emprunter(): void
+    + rendre(): void
+    + getId(): String
+    + getTitre(): String
+    + getAuteur(): String
+}
+
+class LivreOrdinaire
+class LivreReferentielle
+
+abstract class EtatLivre <<State>> {
+    + emprunter(livre: Livre): void
+    + rendre(livre: Livre): void
+}
+
+class Disponible <<State>> {
+    + emprunter(livre: Livre): void
+    + rendre(livre: Livre): void
+}
+
+class Emprunte <<State>> {
+    + emprunter(livre: Livre): void
+    + rendre(livre: Livre): void
+}
+
+interface FineStrategy <<Strategy>> {
+    + calculerAmende(joursRetard: int): double
+}
+
+class AmendeFixe {
+    - montant: double
+    + calculerAmende(joursRetard: int): double
+}
+
+class Adherent {
+    - id: String
+    - nom: String
+    - prenom: String
+    - emprunts: List<Livre>
+    - fineStrategy: FineStrategy
+    + emprunterLivre(livre: Livre): void
+    + rendreLivre(livre: Livre): void
+    + calculerAmende(joursRetard: int): double
+    + setFineStrategy(strategy: FineStrategy): void
+}
+
+class Bibliotheque <<Singleton>> {
+    {static} - instance: Bibliotheque
+    - livres: List<Livre>
+    - adherents: List<Adherent>
+    {static} + getInstance(): Bibliotheque
+    + ajouterLivre(livre: Livre): void
+    + supprimerLivre(livre: Livre): void
+    + inscrireAdherent(adherent: Adherent): void
+    + desinscrireAdherent(adherent: Adherent): void
+    + emprunterLivre(idAdherent: String, idLivre: String): void
+    + rendreLivre(idAdherent: String, idLivre: String): void
+}
+
+class BookFactory <<Factory>> {
+    {static} + createLivreOrdinaire(titre: String, auteur: String): LivreOrdinaire
+    {static} + createLivreReferentielle(titre: String, auteur: String): LivreReferentielle
+}
+
+class MemberFactory <<Factory>> {
+    {static} + createAdherent(nom: String, prenom: String): Adherent
+}
+
+class LibraryFacade <<Facade>> {
+    + ajouterLivre(titre: String, auteur: String, referentiel: boolean): void
+    + inscrireAdherent(nom: String, prenom: String): void
+    + emprunterLivre(idAdherent: String, idLivre: String): void
+    + rendreLivre(idAdherent: String, idLivre: String): void
+    + calculerAmende(idAdherent: String, joursRetard: int): double
+}
+
+Livre <|-- LivreOrdinaire
+Livre <|-- LivreReferentielle
+
+EtatLivre <|-- Disponible
+EtatLivre <|-- Emprunte
+
+FineStrategy <|.. AmendeFixe
+
+Bibliotheque "1" *-- "0..*" Livre
+Bibliotheque "1" *-- "0..*" Adherent
+
+LibraryFacade ..> Bibliotheque
+LibraryFacade ..> BookFactory
+LibraryFacade ..> MemberFactory
+LibraryFacade ..> FineStrategy
+
+BookFactory ..> Livre
+MemberFactory ..> Adherent
+
+Livre ..> EtatLivre
+Adherent ..> Livre
+Adherent ..> FineStrategy
+
+@enduml
